@@ -163,9 +163,10 @@ style.toXML = function(data, callback) {
       opts.srs = tm.srs['900913'];
 
       // Convert datatiles sources to mml layers.
-      var layerToDef = function(layer) {
+      var layerToDef = function(layer, classes) {
         return {
           id: layer.id,
+          'class': classes,
           // Styles can provide a hidden _properties key with
           // layer-specific property overrides. Current workaround to layer
           // properties that could (?) eventually be controlled via carto.
@@ -176,13 +177,17 @@ style.toXML = function(data, callback) {
 
       if(data.layers) { 
         //Layer ordering defined in style
-        opts.Layer = data.layers.map(function(layerId) {
+        opts.Layer = data.layers.map(function(dataLayer) {
+          var layerId = dataLayer;
+          if(dataLayer.id !== undefined)
+            layerId = dataLayer.id;
           for(var i = 0; i < backend.data.vector_layers.length; i++) {
             var layer = backend.data.vector_layers[i];
             if(layer.id == layerId) {
-              return layerToDef(layer);
+              return layerToDef(layer, dataLayer['class']);
             }
           }
+          console.log("Warning: Layer not found: ", layerId);
         });
       } else {
         // Use layer ordering from source
